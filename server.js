@@ -4,8 +4,7 @@ const consoleTable = require('console.table');
 const promisemysql = require('promise-mysql');
 const logo = require("asciiart-logo");
 
-displayLogo()
-start();
+displayLogo();
 
 function displayLogo() {
     console.log(
