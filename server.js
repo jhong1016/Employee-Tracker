@@ -676,3 +676,69 @@ function deleteRole(){
    });
 }
 
+// Delete Department
+function deleteDept(){
+    // Create department array
+    var deptArr = [];
+    // Create connection using promise-sql
+    promisemysql.createConnection(connectionProperties
+    ).then((conn) => {
+        // Query all departments
+        return conn.query("SELECT id, name FROM department");
+    }).then((depts) => {
+        // Add all departments to array
+        for (i=0; i < depts.length; i++){
+            deptArr.push(depts[i].name);
+        }
+        inquirer.prompt([{
+            // Confirm to continue to delete selected department
+            name: "continueDelete",
+            type: "list",
+            message: "*** WARNING *** Deleting a department will delete all roles and employees associated with the department. Do you want to continue?",
+            choices: ["YES", "NO"]
+        }]).then((answer) => {
+            // If not, go back to main menu
+            if (answer.continueDelete === "NO") {
+                options();
+            }
+        }).then(() => {
+            inquirer.prompt([{
+                // Prompt user to select department
+                name: "department",
+                type: "list",
+                message: "Which department would you like to delete?",
+                choices: deptArr
+            }, 
+            {
+                // Confirm with user to delete
+                name: "confirmDelete",
+                type: "Input",
+                message: "Type the department name EXACTLY to confirm deletion of the department: "
+            }]).then((answer) => {
+                if(answer.confirmDelete === answer.dept){
+                    // I confirmed, get department ID
+                    let deptID;
+                    for (i=0; i < depts.length; i++){
+                        if (answer.dept == depts[i].name){
+                            deptID = depts[i].id;
+                        }
+                    }
+                    // Delete department
+                    connection.query(`DELETE FROM department WHERE id=${deptID};`, (err, res) => {
+                        if(err) return err;
+                        // Confirm department has been deleted
+                        console.log(`\n DEPARTMENT '${answer.dept}' DELETED...\n `);
+                        // Go back to main menu
+                        options();
+                    });
+                } 
+                else {
+                    // Do not delete department if not confirmed and go back to main menu
+                    console.log(`\n DEPARTMENT '${answer.dept}' NOT DELETED...\n `);
+                    options();
+                }
+            });
+        })
+    });
+}
+
