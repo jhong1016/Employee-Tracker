@@ -322,32 +322,33 @@ function addEmp(){
                 type: "list",
                 message: "What is their manager's ID?",
                 choices: managerArr
-            }]).then((answer) => {
-                // Set variable for IDs
-                let roleID;
-                // Default Manager value as null
-                let managerID = null;
-                // Get ID of role selected
-                for (i=0; i < roles.length; i++){
-                    if (answer.role == roles[i].title){
-                        roleID = roles[i].id;
-                    }
+            }
+        ]).then((answer) => {
+            // Set variable for IDs
+            let roleID;
+            // Default Manager value as null
+            let managerID = null;
+            // Get ID of role selected
+            for (i=0; i < roles.length; i++){
+                if (answer.role == roles[i].title){
+                    roleID = roles[i].id;
                 }
-                // Get ID of manager selected
-                for (i=0; i < managers.length; i++){
-                    if (answer.manager == managers[i].Employee){
-                        managerID = managers[i].id;
-                    }
+            }
+            // Get ID of manager selected
+            for (i=0; i < managers.length; i++){
+                if (answer.manager == managers[i].Employee){
+                    managerID = managers[i].id;
                 }
-                // Add employee
-                connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
-                VALUES ("${answer.firstName}", "${answer.lastName}", ${roleID}, ${managerID})`, (err, res) => {
-                    if(err) return err;
-                    // Confirm employee has been added
-                    console.log(`\n EMPLOYEE ${answer.firstName} ${answer.lastName} ADDED...\n `);
-                    options();
-                });
+            }
+            // Add employee
+            connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
+            VALUES ("${answer.firstName}", "${answer.lastName}", ${roleID}, ${managerID})`, (err, res) => {
+                if(err) return err;
+                // Confirm employee has been added
+                console.log(`\n EMPLOYEE ${answer.firstName} ${answer.lastName} ADDED...\n `);
+                options();
             });
+        });
     });
 }
 
@@ -386,23 +387,24 @@ function addRole(){
                 type: "list",
                 message: "Department: ",
                 choices: departmentArr
-            }]).then((answer) => {
-                // Set department ID variable
-                let deptID;
-                // Get selected department ID
-                for (i=0; i < departments.length; i++){
-                    if (answer.dept == departments[i].name){
-                        deptID = departments[i].id;
-                    }
+            }
+        ]).then((answer) => {
+            // Set department ID variable
+            let deptID;
+            // Get selected department ID
+            for (i=0; i < departments.length; i++){
+                if (answer.dept == departments[i].name){
+                    deptID = departments[i].id;
                 }
-                // Added role to role table
-                connection.query(`INSERT INTO role (title, salary, department_id)
-                VALUES ("${answer.roleTitle}", ${answer.salary}, ${deptID})`, (err, res) => {
-                    if(err) return err;
-                    console.log(`\n ROLE ${answer.roleTitle} ADDED...\n`);
-                    options();
-                });
+            }
+            // Added role to role table
+            connection.query(`INSERT INTO role (title, salary, department_id)
+            VALUES ("${answer.roleTitle}", ${answer.salary}, ${deptID})`, (err, res) => {
+                if(err) return err;
+                console.log(`\n ROLE ${answer.roleTitle} ADDED...\n`);
+                options();
             });
+        });
     });
 }
 
@@ -603,5 +605,74 @@ function deleteEmp(){
             }   
         });
     });
+}
+
+// Delete Role
+function deleteRole(){
+    // Create role array
+    var roleArr = [];
+    // Create connection using promise-sql
+    promisemysql.createConnection(connectionProperties
+    ).then((conn) => {
+        // Query all roles
+        return conn.query("SELECT id, title FROM role");
+    }).then((roles) => {    
+        // Add all roles to array
+        for (i=0; i < roles.length; i++){
+            roleArr.push(roles[i].title);
+        }
+        inquirer.prompt([{
+            // Confirm deletion of role
+            name: "continueDelete",
+            type: "list",
+            message: "*** WARNING *** Deleting role will delete all employees associated with the role. Do you want to continue?",
+            choices: ["YES", "NO"]
+        }
+    ]).then((answer) => {
+        // If not, go back to main menu
+        if (answer.continueDelete === "NO") {
+            options();
+        }
+    }).then(() => {
+        inquirer.prompt([{
+            // Prompt user of of roles
+            name: "role",
+            type: "list",
+            message: "Which role would you like to delete?",
+            choices: roleArr
+        }, 
+        {
+            // Confirm deletion of role by typing exact role
+            name: "confirmDelete",
+            type: "Input",
+            message: "Type the role title EXACTLY to confirm deletion of the role"
+        },
+            ]).then((answer) => {
+                if(answer.confirmDelete === answer.role){
+                    // Get role ID of of selected role
+                    let roleID;
+                    for (i=0; i < roles.length; i++){
+                        if (answer.role == roles[i].title){
+                            roleID = roles[i].id;
+                        }
+                    }
+                    // Delete role
+                    connection.query(`DELETE FROM role WHERE id=${roleID};`, (err, res) => {
+                        if(err) return err;
+                        // Confirm role has been deleted 
+                        console.log(`\n ROLE '${answer.role}' DELETED...\n `);
+                        // Go back to main menu
+                        options();
+                    });
+                } 
+                else {
+                    // If not confirmed, do not delete role
+                    console.log(`\n ROLE '${answer.role}' NOT DELETED...\n `);
+                    //back to main menu
+                    options();
+                }     
+            });
+        })
+   });
 }
 
