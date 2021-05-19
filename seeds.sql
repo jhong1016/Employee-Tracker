@@ -14,19 +14,19 @@ VALUES (5, "IT");
 
 ----- Role Seeds -----
 INSERT INTO role (id, title, salary, department_id)
-VALUES (1, "Sales Lead", 45000, 1);
+VALUES (1, "Sales Lead", 50000, 1);
 INSERT INTO role (id, title, salary, department_id)
-VALUES (2, "Salesperson", 35000, 1);
+VALUES (2, "Salesperson", 45000, 1);
 INSERT INTO role (id, title, salary, department_id)
 VALUES (3, "Assistant Store Manager", 60000, 1);
 INSERT INTO role (id, title, salary, department_id)
 VALUES (4, "Store Manager", 75000, 1);
 INSERT INTO role (id, title, salary, department_id)
-VALUES (5, "Lead Engineer", 43000, 2);
+VALUES (5, "Lead Engineer", 73000, 2);
 INSERT INTO role (id, title, salary, department_id)
-VALUES (6, "Accountant", 50000, 3);
+VALUES (6, "Accountant", 60000, 3);
 INSERT INTO role (id, title, salary, department_id)
-VALUES (7, "Lawyer", 40000, 4);
+VALUES (7, "Lawyer", 90000, 4);
 INSERT INTO role (id, title, salary, department_id)
 VALUES (8, "System Adminstrator", 80000, 5);
 INSERT INTO role (id, title, salary, department_id)
@@ -55,5 +55,3 @@ INSERT INTO employee (id, first_name, last_name, role_id, manager_id)
 VALUES (9, "Martin", "Cast", 8, 10);
 INSERT INTO employee (id, first_name, last_name, role_id, manager_id)
 VALUES (10, "Taylor", "Wilson", 9, null);
-
-
