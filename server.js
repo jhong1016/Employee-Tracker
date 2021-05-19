@@ -404,3 +404,70 @@ function addDept(){
         });
     });
 }
+
+// Update Employee Role
+function updateEmpRole(){
+    // Create employee and role arrays
+    var employeeArr = [];
+    var roleArr = [];
+    // Create connection using promise-sql
+    promisemysql.createConnection(connectionProperties)
+    .then((conn) => {
+        return Promise.all([
+            // Query all roles and employees
+            conn.query('SELECT id, title FROM role ORDER BY title ASC'), 
+            conn.query("SELECT employee.id, concat(employee.first_name, ' ' ,  employee.last_name) AS Employee FROM employee ORDER BY Employee ASC")
+        ]);
+    }).then(([roles, employees]) => {
+        // Place all roles in array
+        for (i=0; i < roles.length; i++){
+            roleArr.push(roles[i].title);
+        }
+        // Place all employees in array
+        for (i=0; i < employees.length; i++){
+            employeeArr.push(employees[i].Employee);
+            // Console.log(value[i].name);
+        }
+        return Promise.all([roles, employees]);
+    }).then(([roles, employees]) => {
+        inquirer.prompt([
+            {
+                // Prompt user to select employee
+                name: "employee",
+                type: "list",
+                message: "Who would you like to edit?",
+                choices: employeeArr
+            }, 
+            {
+                // Select role to update employee
+                name: "role",
+                type: "list",
+                message: "What is their new role?",
+                choices: roleArr
+            },
+        ]).then((answer) => {
+            let roleID;
+            let employeeID;
+            // Get selected role ID 
+            for (i=0; i < roles.length; i++){
+                if (answer.role == roles[i].title){
+                    roleID = roles[i].id;
+                }
+            }
+            // Get selected employee ID
+            for (i=0; i < employees.length; i++){
+                if (answer.employee == employees[i].Employee){
+                    employeeID = employees[i].id;
+                }
+            }    
+            // Update employee with new role
+            connection.query(`UPDATE employee SET role_id = ${roleID} WHERE id = ${employeeID}`, (err, res) => {
+                if(err) return err;
+                // Confirm update employee
+                console.log(`\n ${answer.employee} ROLE UPDATED TO ${answer.role}...\n `);
+                // Back to main menu
+                options();
+            });
+        });
+    });
+}
