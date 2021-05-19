@@ -1,6 +1,7 @@
 const mysql = require('mysql');
 const inquirer = require('inquirer');
-const consoleTable = require('console.table')
+const consoleTable = require('console.table');
+const promisemysql = require('promise-mysql');
 
 // Connection properties to sql database
 const connection = mysql.createConnection({
