@@ -4,18 +4,20 @@ const consoleTable = require('console.table');
 const promisemysql = require('promise-mysql');
 
 // Connection properties to sql database
-const connection = mysql.createConnection({
+const connectionProperties = {
     host: 'localhost',
     port: 3306,
     user: 'root',
     password: 'yourRootPassword',
     database: 'employee_DB'
-})
+};
+
+// Creating Connection
+const connection = mysql.createConnection(connectionProperties);
 
 // Connection to sql server and sql database
 connection.connect((err) => {
     if (err) throw err;
-
     // Start main menu function
     console.log("\n Welcome to Employee Tracker \n");
     options();
