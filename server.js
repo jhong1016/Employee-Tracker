@@ -20,7 +20,7 @@ connection.connect((err) => {
     options();
 });
 
-// Prompt user to choose an option
+// Main Menu - Prompt user to choose an option
 function options() {
     inquirer
     .prompt({
@@ -99,7 +99,44 @@ function viewAllEmp(){
         console.log("\n");
         // Display query results using console.table
         console.table('All Employees: ', res);
-        //Back to main menu
+        // Back to main menu
         options();
+    });
+}
+
+// view all employees by role
+function viewAllEmpByRole(){
+    // Set global array to store all roles
+    var roleArr = [];
+    // Create connection using promise-sql
+    promisemysql.createConnection(connectionProperties)
+    .then((conn) => {
+        // Query all roles
+        return conn.query('SELECT title FROM role');
+    }).then(function(roles){
+        // Place all roles within the roleArr
+        for (i=0; i < roles.length; i++){
+            roleArr.push(roles[i].title);
+        }
+    }).then(() => {
+        // Prompt user to select a role
+        inquirer.prompt({
+            name: "role",
+            type: "list",
+            message: "Select a role",
+            choices: roleArr
+        })    
+        .then((answer) => {
+            // Query all employees by selected role
+            const query = `SELECT e.id AS ID, e.first_name AS 'First Name', e.last_name AS 'Last Name', role.title AS Title, department.name AS Department, role.salary AS Salary, concat(m.first_name, ' ' ,  m.last_name) AS Manager FROM employee e LEFT JOIN employee m ON e.manager_id = m.id INNER JOIN role ON e.role_id = role.id INNER JOIN department ON role.department_id = department.id WHERE role.title = '${answer.role}' ORDER BY ID ASC`;
+            connection.query(query, (err, res) => {
+                if(err) return err;
+                // Show results using console.table
+                console.log("\n");
+                console.table(res);
+                // Back to main menu
+                options();
+            });
+        });
     });
 }
