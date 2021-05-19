@@ -514,8 +514,9 @@ function updateEmpMngr(){
                 type: "list",
                 message: "Who would you like to edit?",
                 choices: employeeArr
-            }, {
-                // prompt user to select new manager
+            }, 
+            {
+                // Prompt user to select new manager
                 name: "manager",
                 type: "list",
                 message: "Who is their new Manager?",
@@ -547,3 +548,61 @@ function updateEmpMngr(){
         });
     });
 }
+
+// Delete employee
+function deleteEmp(){
+    // Create global employee array
+    var employeeArr = [];
+    // Create connection using promise-sql
+    promisemysql.createConnection(connectionProperties)
+    .then((conn) => {
+        // Query all employees
+        return  conn.query("SELECT employee.id, concat(employee.first_name, ' ' ,  employee.last_name) AS employee FROM employee ORDER BY Employee ASC");
+    }).then((employees) => {
+        // Place all employees in array
+        for (i=0; i < employees.length; i++){
+            employeeArr.push(employees[i].employee);
+        }
+        inquirer.prompt([
+            {
+                // Prompt user of all employees
+                name: "employee",
+                type: "list",
+                message: "Which employee would you like to delete?",
+                choices: employeeArr
+            }, 
+            {
+                // Confirm deletion of employee
+                name: "yesNo",
+                type: "list",
+                message: "Confirm deletion",
+                choices: ["YES", "NO"]
+            },
+        ]).then((answer) => {
+            if (answer.yesNo == "YES"){
+                let employeeID;
+                // If confirmed, get ID of selected employee
+                for (i=0; i < employees.length; i++){
+                    if (answer.employee == employees[i].employee){
+                        employeeID = employees[i].id;
+                    }
+                }
+                // Deleted selected employee
+                connection.query(`DELETE FROM employee WHERE id=${employeeID};`, (err, res) => {
+                    if (err) return err;
+                    // Confirm deleted employee
+                    console.log(`\n EMPLOYEE '${answer.employee}' DELETED...\n `);
+                    // Back to main menu
+                    options();
+                });
+            } 
+            else {
+                // If not confirmed, go back to main menu
+                console.log(`\n EMPLOYEE '${answer.employee}' NOT DELETED...\n `);
+                // Back to main menu
+                options();
+            }   
+        });
+    });
+}
+
