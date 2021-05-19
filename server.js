@@ -2,6 +2,25 @@ const mysql = require('mysql');
 const inquirer = require('inquirer');
 const consoleTable = require('console.table');
 const promisemysql = require('promise-mysql');
+const logo = require("asciiart-logo");
+
+displayLogo()
+start();
+
+function displayLogo() {
+    console.log(
+        logo({
+            name: 'Employee Tracker System',
+            lineChars: 10,
+            padding: 2,
+            margin: 3,
+            borderColor: 'grey',
+            logoColor: 'white',
+            textColor: 'white',
+        })
+        .render()
+    );
+}
 
 // Connection properties to sql database
 const connectionProperties = {
@@ -469,5 +488,73 @@ function updateEmpRole(){
                 options();
             });
         });
+    });
+}
+
+// Update employee manager
+function updateEmpMngr(){
+
+    // set global array for employees
+    let employeeArr = [];
+
+    // Create connection using promise-sql
+    promisemysql.createConnection(connectionProperties
+    ).then((conn) => {
+
+        // query all employees
+        return conn.query("SELECT employee.id, concat(employee.first_name, ' ' ,  employee.last_name) AS Employee FROM employee ORDER BY Employee ASC");
+    }).then((employees) => {
+
+        // place employees in array
+        for (i=0; i < employees.length; i++){
+            employeeArr.push(employees[i].Employee);
+        }
+
+        return employees;
+    }).then((employees) => {
+
+        inquirer.prompt([
+            {
+                // prompt user to selected employee
+                name: "employee",
+                type: "list",
+                message: "Who would you like to edit?",
+                choices: employeeArr
+            }, {
+                // prompt user to select new manager
+                name: "manager",
+                type: "list",
+                message: "Who is their new Manager?",
+                choices: employeeArr
+            },]).then((answer) => {
+
+                let employeeID;
+                let managerID;
+
+                // get ID of selected manager
+                for (i=0; i < employees.length; i++){
+                    if (answer.manager == employees[i].Employee){
+                        managerID = employees[i].id;
+                    }
+                }
+
+                // get ID of selected employee
+                for (i=0; i < employees.length; i++){
+                    if (answer.employee == employees[i].Employee){
+                        employeeID = employees[i].id;
+                    }
+                }
+
+                // update employee with manager ID
+                connection.query(`UPDATE employee SET manager_id = ${managerID} WHERE id = ${employeeID}`, (err, res) => {
+                    if(err) return err;
+
+                    // confirm update employee
+                    console.log(`\n ${answer.employee} MANAGER UPDATED TO ${answer.manager}...\n`);
+
+                    // go back to main menu
+                    mainMenu();
+                });
+            });
     });
 }
