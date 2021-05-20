@@ -4,8 +4,8 @@ const consoleTable = require('console.table');
 const promisemysql = require('promise-mysql');
 const logo = require("asciiart-logo");
 
+// Displays logo when user npm starts
 displayLogo();
-
 function displayLogo() {
     console.log(
         logo({
