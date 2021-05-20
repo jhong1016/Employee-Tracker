@@ -239,7 +239,7 @@ async function updateManager() {
     })
 };
 
-// Updates the selected employee's role
+// Updates selected employee's role
 async function updateEmployeeRole() {
     let employees = await db.query('SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee');
     employees.push({ id: null, name: "Cancel" });
@@ -265,6 +265,44 @@ async function updateEmployeeRole() {
             db.query("UPDATE employee SET role_id=? WHERE id=?", [roleID, empID]);
             console.log("\x1b[32m", `${answers.empName} new role is ${answers.newRole}`);
         }
+        runApp();
+    })
+};
+
+// Add a new role to the database
+async function addRole() {
+    // Create department array
+    let departments = await db.query('SELECT id, name FROM department');
+    // Create connection using prompt
+    inquirer.prompt([
+        {
+            name: "roleName",
+            type: "input",
+            message: "Enter new role:",
+            validate: confirmStringInput
+        },
+        {
+            name: "salaryNum",
+            type: "input",
+            message: "Enter salary for the role:",
+            validate: input => {
+                if (!isNaN(input)) {
+                    return true;
+                }
+                return "Please enter a valid number."
+            }
+        },
+        {
+            name: "roleDepartment",
+            type: "list",
+            message: "Choose the role's department:",
+            choices: departments.map(obj => obj.name)
+        }
+    ]).then(answers => {
+        // Set department ID variable
+        let depID = departments.find(obj => obj.name === answers.roleDepartment).id
+        db.query("INSERT INTO role (title, salary, department_id) VALUES (?)", [[answers.roleName, answers.salaryNum, depID]]);
+        console.log("\x1b[32m", `${answers.roleName} was added. Department: ${answers.roleDepartment}`);
         runApp();
     })
 };
@@ -362,62 +400,6 @@ function viewAllEmpByMngr(){
                 console.log("\n");
                 console.table(res);
                 // Back to main menu
-                options();
-            });
-        });
-    });
-}
-
-// Add Role
-function addRole(){
-    // Create department array
-    var departmentArr = [];
-    // Create connection using promise-sql
-    promisemysql.createConnection(connectionProperties)
-    .then((conn) => {
-        // Query all departments
-        return conn.query('SELECT id, name FROM department ORDER BY name ASC');
-    }).then((departments) => {
-        // Place all departments in array
-        for (i=0; i < departments.length; i++){
-            departmentArr.push(departments[i].name);
-        }
-        return departments;
-    }).then((departments) => {
-        inquirer.prompt([
-            {
-                // Prompt user role title
-                name: "roleTitle",
-                type: "input",
-                message: "Role title: ",
-            },
-            {
-                // Prompt user for salary
-                name: "salary",
-                type: "number",
-                message: "Salary: ",
-            },
-            {   
-                // Prompt user to select which department role falls under
-                name: "department",
-                type: "list",
-                message: "Department: ",
-                choices: departmentArr
-            }
-        ]).then((answer) => {
-            // Set department ID variable
-            let deptID;
-            // Get selected department ID
-            for (i=0; i < departments.length; i++){
-                if (answer.dept == departments[i].name){
-                    deptID = departments[i].id;
-                }
-            }
-            // Added role to role table
-            connection.query(`INSERT INTO role (title, salary, department_id)
-            VALUES ("${answer.roleTitle}", ${answer.salary}, ${deptID})`, (err, res) => {
-                if(err) return err;
-                console.log(`\n ROLE ${answer.roleTitle} ADDED...\n`);
                 options();
             });
         });
