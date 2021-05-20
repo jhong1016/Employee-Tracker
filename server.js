@@ -1,6 +1,5 @@
 const inquirer = require('inquirer');
 const db = require('./utils/connection.js');
-const runApp = require('./utils/questions.js');
 const consoleTable = require('console.table');
 const promisemysql = require('promise-mysql');
 const logo = require("asciiart-logo");
@@ -90,6 +89,91 @@ async function showDepartments() {
         if (err) throw err;
         console.table(res);
         runApp();
+    })
+};
+
+// Calls inside inquirers to check that user completing the input correctly
+async function confirmStringInput(input) {
+    if ((input.trim() != "") && (input.trim().length <= 30)) {
+        return true;
+    }
+    return "Please limit your input to 30 characters or less."
+};
+
+// Adds a new employee after asking for emloyee name, role, and manager
+async function addEmployee() {
+    // Create two global arrays to hold 
+    let positions = await db.query('SELECT id, title FROM role');
+    let managers = await db.query('SELECT id, CONCAT(first_name, " ", last_name) AS Manager FROM employee');
+    managers.unshift({ id: null, Manager: "None" });
+    // Create connection using prompt
+    inquirer.prompt([
+        {
+            name: "firstName",
+            type: "input",
+            message: "First name:",
+            validate: confirmStringInput
+        },
+        {
+            name: "lastName",
+            type: "input",
+            message: "Last name:",
+            validate: confirmStringInput
+        },
+        {
+            name: "role",
+            type: "list",
+            message: "Role:",
+            choices: positions.map(obj => obj.title)
+        },
+        {
+            name: "manager",
+            type: "list",
+            message: "Select employee's manager:",
+            choices: managers.map(obj => obj.Manager)
+        }
+    ]).then(answers => {
+        let positionDetails = positions.find(obj => obj.title === answers.role);
+        let manager = managers.find(obj => obj.Manager === answers.manager);
+        db.query("INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?)", [[answers.firstName.trim(), answers.lastName.trim(), positionDetails.id, manager.id]]);
+        console.log("\x1b[32m", `${answers.firstName} was added to the employee database!`);
+        runApp();
+    });
+};
+
+// Options to make changes to employees specifically
+function editEmployeeOptions() {
+    // Create connection using prompt
+    inquirer.prompt({
+        name: "editChoice",
+        type: "list",
+        message: "What would you like to update?",
+        choices: [
+            "Add A New Employee",
+            "Change Employee Role",
+            "Change Employee Manager",
+            "Remove An Employee",
+            "Return To Main Menu"
+        ]
+    // Prompt user to make a selection
+    }).then(response => {
+        switch (response.editChoice) {
+            case "Add A New Employee":
+                addEmployee();
+                break;
+            case "Change Employee Role":
+                updateEmployeeRole();
+                break;
+            case "Change Employee Manager":
+                updateManager();
+                break;
+            case "Remove An Employee":
+                removeEmployee();
+                break;
+            case "Return To Main Menu":
+                runApp();
+                break;
+        }
     })
 };
 
