@@ -1,4 +1,3 @@
-const mysql = require('mysql');
 const inquirer = require('inquirer');
 const consoleTable = require('console.table');
 const promisemysql = require('promise-mysql');
@@ -20,95 +19,6 @@ function displayLogo() {
         .render()
     );
 }
-
-// Connection properties to sql database
-const connectionProperties = {
-    host: 'localhost',
-    port: 3306,
-    user: 'root',
-    password: 'yourRootPassword',
-    database: 'employee_DB'
-};
-
-// Creating Connection
-const connection = mysql.createConnection(connectionProperties);
-
-// Connection to sql server and sql database
-connection.connect((err) => {
-    if (err) throw err;
-    // Start main menu function
-    console.log("\n Welcome to Employee Tracker \n");
-    options();
-});
-
-// Main Menu - Prompt user to choose an option
-function options() {
-    inquirer
-    .prompt({
-        name: 'action',
-        type: 'list',
-        message: 'What would you like to do?',
-        choices: [
-            "View all employees",
-            "View all employees by role",
-            "View all employees by department",
-            "View all employees by manager",
-            "Add employee",
-            "Add role",
-            "Add department",
-            "Update employee role",
-            "Update employee manager",
-            "Delete employee",
-            "Delete role",
-            "Delete department",
-            "View department budgets"
-          ]
-        })
-        .then((answer) => {
-            // Switch case depending on user option
-            switch (answer.action) {
-                case "View all employees":
-                    viewAllEmp();
-                    break;
-                case "View all employees by role":
-                    viewAllEmpByRole();
-                    break;
-                case "View all employees by department":
-                    viewAllEmpByDept();
-                    break;
-                case "View all employees by manager":
-                    viewAllEmpByMngr();
-                    break;
-                case "Add employee":
-                    addEmp();
-                    break;
-                case "Add role":
-                    addRole();
-                    break;
-                case "Add department":
-                    addDept();
-                    break;
-                case "Update employee role":
-                    updateEmpRole();
-                    break;
-                case "Update employee manager":
-                    updateEmpMngr();
-                    break;
-                case "Delete employee":
-                    deleteEmp();
-                    break;
-                case "Delete role":
-                    deleteRole();
-                    break;
-                case "Delete department":
-                    deleteDept();
-                    break;
-                case "View department budgets":
-                    viewDeptBudget();
-                    break;
-            }
-        });    
-    }
 
 // View all employees in the database
 function viewAllEmp(){
