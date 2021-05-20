@@ -1,7 +1,7 @@
 const inquirer = require('inquirer');
-const consoleTable = require('console.table');
-const logo = require("asciiart-logo");
 const mysql = require('mysql');
+const consoleTable = require('console.table');
+const logo = require('asciiart-logo');
 
 // Displays logo when user npm starts
 displayLogo();
