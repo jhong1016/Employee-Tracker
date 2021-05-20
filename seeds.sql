@@ -10,4 +10,4 @@ VALUES ('Sales Lead', 100000, 1), ('Salesperson', 80000, 1), ('Lead Engineer', 1
 
 ----- Employee Seeds -----
 INSERT INTO employee (first_name, last_name, role_id, manager_id) 
-VALUES ('John', 'Smith', 1, null), ('Rosie', 'Cole', 3, null), ('Ronald', 'Young', 4, 2), ('David', 'Miller', 6, null), ('Maria', 'Hall', 2, 1), ('Martin', 'Cast', 2, 1), ('Taylor', 'Wilson', 5, 1);
+VALUES ('John', 'Smith', 1, null), ('Rosie', 'Cole', 3, null), ('Ronald', 'Young', 4, 2), ('David', 'Miller', 6, null), ('Maria', 'Hall', 2, null), ('Martin', 'Cast', 2, 1), ('Taylor', 'Wilson', 5, 1);
