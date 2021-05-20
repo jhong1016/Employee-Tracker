@@ -1,5 +1,4 @@
 const inquirer = require('inquirer');
-const db = require('./utils/connection.js');
 const consoleTable = require('console.table');
 const logo = require("asciiart-logo");
 const mysql = require('mysql');
