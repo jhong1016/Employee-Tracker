@@ -1,8 +1,8 @@
 USE employee_DB;
 
 ----- Department Seeds -----
-INSERT INTO department (name)
-VALUES ('Sales'), ('Engineering'), ('Finance'), ('Legal'), ('IT');
+INSERT INTO department (department_id, name)
+VALUES (1, 'Sales'), (2, 'Engineering'), (3, 'Finance'), (4, 'Legal'), (5, 'IT');
 
 ----- Role Seeds -----
 INSERT INTO role (title, salary, department_id)
