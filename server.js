@@ -409,181 +409,72 @@ async function removeRole() {
     })
 };
 
-
-
-
-
-
-// View all employees by department
-function viewAllEmpByDept(){
-    // Set global array to store departments
-    var deptArr = [];
-    // Create new connection using promise-sql
-    promisemysql.createConnection(connectionProperties)
-    .then((conn) => {
-        // Query all departments
-        return conn.query('SELECT name FROM department');
-    }).then(function(value){
-        // Place all names within deptArr
-        deptQuery = value;
-        for (i=0; i < value.length; i++){
-            deptArr.push(value[i].name);
+// Add a new department to the database
+async function addDepartment() {
+    inquirer.prompt([
+        {
+            name: "depName",
+            type: "input",
+            message: "Enter new department:",
+            validate: confirmStringInput
         }
-    }).then(() => {
-        // Prompt user to select department from array of departments
-        inquirer.prompt({
-            name: "department",
-            type: "list",
-            message: "Select a department",
-            choices: deptArr
-        })    
-        .then((answer) => {
-            // Query all employees depending on selected department
-            const query = `SELECT e.id AS ID, e.first_name AS 'First Name', e.last_name AS 'Last Name', role.title AS Title, department.name AS Department, role.salary AS Salary, concat(m.first_name, ' ' ,  m.last_name) AS Manager FROM employee e LEFT JOIN employee m ON e.manager_id = m.id INNER JOIN role ON e.role_id = role.id INNER JOIN department ON role.department_id = department.id WHERE department.name = '${answer.department}' ORDER BY ID ASC`;
-            connection.query(query, (err, res) => {
-                if(err) return err;
-                // Show results in console.table
-                console.log("\n");
-                console.table(res);
-                // Back to main menu
-                options();
-            });
-        });
-    });
-}
+    ]).then(answers => {
+        db.query("INSERT INTO department (name) VALUES (?)", [answers.depName]);
+        console.log("\x1b[32m", `${answers.depName} was added to departments.`);
+        runApp();
+    })
+};
 
-// View all employees by manager
-function viewAllEmpByMngr(){
-    // Set manager array
-    var managerArr = [];
-    // Create connection using promise-sql
-    promisemysql.createConnection(connectionProperties)
-    .then((conn) => {
-        // Query all employees
-        return conn.query("SELECT DISTINCT m.id, CONCAT(m.first_name, ' ', m.last_name) AS manager FROM employee e Inner JOIN employee m ON e.manager_id = m.id");
-    }).then(function(managers){
-        // Place all employees in array
-        for (i=0; i < managers.length; i++){
-            managerArr.push(managers[i].manager);
-        }
-        return managers;
-    }).then((managers) => {
-        inquirer.prompt({
-            // Prompt user of manager
-            name: "manager",
-            type: "list",
-            message: "Select a manager",
-            choices: managerArr
-        })    
-        .then((answer) => {
-            let managerID;
-            // Get ID of manager selected
-            for (i=0; i < managers.length; i++){
-                if (answer.manager == managers[i].manager){
-                    managerID = managers[i].id;
-                }
-            }
-            // Query all employees by selected manager
-            const query = `SELECT e.id, e.first_name, e.last_name, role.title, department.name AS department, role.salary, concat(m.first_name, ' ' ,  m.last_name) AS manager
-            FROM employee e
-            LEFT JOIN employee m ON e.manager_id = m.id
-            INNER JOIN role ON e.role_id = role.id
-            INNER JOIN department ON role.department_id = department.id
-            WHERE e.manager_id = ${managerID};`;
-            connection.query(query, (err, res) => {
-                if(err) return err;
-                // Display results with console.table
-                console.log("\n");
-                console.table(res);
-                // Back to main menu
-                options();
-            });
-        });
-    });
-}
-
-// Add Department
-function addDept(){
-    inquirer.prompt({
-        // Prompt user for name of department
-        name: "departmentName",
-        type: "input",
-        message: "Department Name: ",
-    }).then((answer) => {
-        // Add department to role table
-        connection.query(`INSERT INTO department (name)VALUES ("${answer.deptName}");`, (err, res) => {
-            if(err) return err;
-            console.log("\n DEPARTMENT ADDED...\n ");
-            options();
-        });
-    });
-}
-
-// Delete Department
-function deleteDept(){
+// Remove a department from the database
+async function removeDepartment() {
     // Create department array
-    var deptArr = [];
-    // Create connection using promise-sql
-    promisemysql.createConnection(connectionProperties
-    ).then((conn) => {
-        // Query all departments
-        return conn.query("SELECT id, name FROM department");
-    }).then((depts) => {
-        // Add all departments to array
-        for (i=0; i < depts.length; i++){
-            deptArr.push(depts[i].name);
-        }
-        inquirer.prompt([{
-            // Confirm to continue to delete selected department
-            name: "continueDelete",
+    let departments = await db.query('SELECT id, name FROM department');
+    departments.push({ id: null, name: "Cancel" });
+    // Create connection using prompt
+    inquirer.prompt([
+        {
+            name: "depName",
             type: "list",
-            message: "*** WARNING *** Deleting a department will delete all roles and employees associated with the department. Do you want to continue?",
-            choices: ["YES", "NO"]
-        }]).then((answer) => {
-            // If not, go back to main menu
-            if (answer.continueDelete === "NO") {
-                options();
-            }
-        }).then(() => {
-            inquirer.prompt([{
-                // Prompt user to select department
-                name: "department",
-                type: "list",
-                message: "Which department would you like to delete?",
-                choices: deptArr
-            }, 
-            {
-                // Confirm with user to delete
-                name: "confirmDelete",
-                type: "Input",
-                message: "Type the department name EXACTLY to confirm deletion of the department: "
-            }]).then((answer) => {
-                if(answer.confirmDelete === answer.dept){
-                    // I confirmed, get department ID
-                    let deptID;
-                    for (i=0; i < depts.length; i++){
-                        if (answer.dept == depts[i].name){
-                            deptID = depts[i].id;
-                        }
-                    }
-                    // Delete department
-                    connection.query(`DELETE FROM department WHERE id=${deptID};`, (err, res) => {
-                        if(err) return err;
-                        // Confirm department has been deleted
-                        console.log(`\n DEPARTMENT '${answer.dept}' DELETED...\n `);
-                        // Go back to main menu
-                        options();
-                    });
-                } 
-                else {
-                    // Do not delete department if not confirmed and go back to main menu
-                    console.log(`\n DEPARTMENT '${answer.dept}' NOT DELETED...\n `);
-                    options();
-                }
-            });
-        })
-    });
-}
+            message: "Remove which department?",
+            choices: departments.map(obj => obj.name)
+        }
+    ]).then(response => {
+        if (response.depName != "Cancel") {
+            // Confirm to continue to delete selected department
+            let uselessDepartment = departments.find(obj => obj.name === response.depName);
+            db.query("DELETE FROM department WHERE id=?", uselessDepartment.id);
+            console.log("\x1b[32m", `${response.depName} was removed. Please reassign associated roles.`);
+        }
+        runApp();
+    })
+};
+
+// Options to make changes to departments
+function editDepartmentOptions() {
+    // Create connection using prompt
+    inquirer.prompt({
+        name: "editDeps",
+        type: "list",
+        message: "Which department would you like to update?",
+        choices: [
+            "Add A New Department",
+            "Remove A Department",
+            "Return To Main Menu"
+        ]
+    }).then(responses => {
+        switch (responses.editDeps) {
+            case "Add A New Department":
+                addDepartment();
+                break;
+            case "Remove A Department":
+                removeDepartment();
+                break;
+            case "Return To Main Menu":
+                runApp();
+                break;
+        }
+    })
+};
 
 // View Department Budget
 function viewDeptBudget(){
