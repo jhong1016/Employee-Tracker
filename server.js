@@ -243,7 +243,7 @@ async function updateManager() {
 async function updateEmployeeRole() {
     let employees = await db.query('SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee');
     employees.push({ id: null, name: "Cancel" });
-    let roles = await db.query('SELECT id, title FROM role');
+    let role = await db.query('SELECT id, title FROM role');
     // Create connection using prompt
     inquirer.prompt([
         {
@@ -256,12 +256,12 @@ async function updateEmployeeRole() {
             name: "newRole",
             type: "list",
             message: "Change employee role to:",
-            choices: roles.map(obj => obj.title)
+            choices: role.map(obj => obj.title)
         }
     ]).then(answers => {
         if (answers.empName != "Cancel") {
             let empID = employees.find(obj => obj.name === answers.empName).id
-            let roleID = roles.find(obj => obj.title === answers.newRole).id
+            let roleID = role.find(obj => obj.title === answers.newRole).id
             db.query("UPDATE employee SET role_id=? WHERE id=?", [roleID, empID]);
             console.log("\x1b[32m", `${answers.empName} new role is ${answers.newRole}`);
         }
@@ -309,8 +309,8 @@ async function addRole() {
 
 // Updates a role on the database
 async function updateRole() {
-    let roles = await db.query('SELECT id, title FROM role');
-    roles.push({ id: null, title: "Cancel" });
+    let role = await db.query('SELECT id, title FROM role');
+    role.push({ id: null, title: "Cancel" });
     let departments = await db.query('SELECT id, name FROM department');
     // Create connection using prompt
     inquirer.prompt([
@@ -318,7 +318,7 @@ async function updateRole() {
             name: "roleName",
             type: "list",
             message: "Update which role?",
-            choices: roles.map(obj => obj.title)
+            choices: role.map(obj => obj.title)
         }
     ]).then(response => {
         if (response.roleName == "Cancel") {
@@ -345,7 +345,7 @@ async function updateRole() {
             }
         ]).then(answers => {
             let depID = departments.find(obj => obj.name === answers.roleDepartment).id
-            let roleID = roles.find(obj => obj.title === response.roleName).id
+            let roleID = role.find(obj => obj.title === response.roleName).id
             db.query("UPDATE role SET title=?, salary=?, department_id=? WHERE id=?", [response.roleName, answers.salaryNum, depID, roleID]);
             console.log("\x1b[32m", `${response.roleName} was updated.`);
             runApp();
@@ -384,7 +384,30 @@ function editRoleOptions() {
     })
 };
 
-
+// Remove a role from the database
+async function removeRole() {
+    // Create role array
+    let role = await db.query('SELECT id, title FROM role');
+    role.push({ id: null, title: "Cancel" });
+    // Create connection using prompt
+    inquirer.prompt([
+        {
+            // Prompt user of of roles
+            name: "roleName",
+            type: "list",
+            message: "Remove which role?",
+            choices: role.map(obj => obj.title)
+        }
+    ]).then(response => {
+        if (response.roleName != "Cancel") {
+            // Confirm deletion of role
+            let noMoreRole = role.find(obj => obj.title === response.roleName);
+            db.query("DELETE FROM role WHERE id=?", noMoreRole.id);
+            console.log("\x1b[32m", `${response.roleName} was removed. Please reassign associated employees.`);
+        }
+        runApp();
+    })
+};
 
 
 
@@ -494,75 +517,6 @@ function addDept(){
             options();
         });
     });
-}
-
-// Delete Role
-function deleteRole(){
-    // Create role array
-    var roleArr = [];
-    // Create connection using promise-sql
-    promisemysql.createConnection(connectionProperties
-    ).then((conn) => {
-        // Query all roles
-        return conn.query("SELECT id, title FROM role");
-    }).then((roles) => {    
-        // Add all roles to array
-        for (i=0; i < roles.length; i++){
-            roleArr.push(roles[i].title);
-        }
-        inquirer.prompt([{
-            // Confirm deletion of role
-            name: "continueDelete",
-            type: "list",
-            message: "*** WARNING *** Deleting role will delete all employees associated with the role. Do you want to continue?",
-            choices: ["YES", "NO"]
-        }
-    ]).then((answer) => {
-        // If not, go back to main menu
-        if (answer.continueDelete === "NO") {
-            options();
-        }
-    }).then(() => {
-        inquirer.prompt([{
-            // Prompt user of of roles
-            name: "role",
-            type: "list",
-            message: "Which role would you like to delete?",
-            choices: roleArr
-        }, 
-        {
-            // Confirm deletion of role by typing exact role
-            name: "confirmDelete",
-            type: "Input",
-            message: "Type the role title EXACTLY to confirm deletion of the role"
-        },
-            ]).then((answer) => {
-                if(answer.confirmDelete === answer.role){
-                    // Get role ID of of selected role
-                    let roleID;
-                    for (i=0; i < roles.length; i++){
-                        if (answer.role == roles[i].title){
-                            roleID = roles[i].id;
-                        }
-                    }
-                    // Delete role
-                    connection.query(`DELETE FROM role WHERE id=${roleID};`, (err, res) => {
-                        if(err) return err;
-                        // Confirm role has been deleted 
-                        console.log(`\n ROLE '${answer.role}' DELETED...\n `);
-                        // Go back to main menu
-                        options();
-                    });
-                } 
-                else {
-                    // If not confirmed, do not delete role
-                    console.log(`\n ROLE '${answer.role}' NOT DELETED...\n `);
-                    //back to main menu
-                    options();
-                }     
-            });
-        })
-   });
 }
 
 // Delete Department
