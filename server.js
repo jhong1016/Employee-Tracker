@@ -56,6 +56,9 @@ function runApp() {
             case "Edit Departments":
                 editDepartmentOptions();
                 break;
+            case "View department budgets":
+                viewDepartmentBudget();
+                break;
         }
     });
 }
@@ -477,7 +480,7 @@ function editDepartmentOptions() {
 };
 
 // View Department Budget
-function viewDeptBudget(){
+function viewDepartmentBudget(){
     // Create connection using promise-sql
     promisemysql.createConnection(connectionProperties)
     .then((conn) => {
@@ -509,6 +512,6 @@ function viewDeptBudget(){
         // Display departments budgets using console.table
         console.table(deptBudgetArr);
         // Back to main menu
-        options();
+        runApp();
     });
 }
