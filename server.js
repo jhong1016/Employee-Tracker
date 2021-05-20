@@ -1,8 +1,8 @@
 const inquirer = require('inquirer');
 const db = require('./utils/connection.js');
 const consoleTable = require('console.table');
-const promisemysql = require('promise-mysql');
 const logo = require("asciiart-logo");
+const mysql = require('mysql');
 
 // Displays logo when user npm starts
 displayLogo();
@@ -20,6 +20,41 @@ function displayLogo() {
         .render()
     );
 }
+
+// Creating Connection
+class Database {
+    constructor(config) {
+        this.connection = mysql.createConnection(config);
+    }
+    // Connection to sql server and sql database
+    query(sql, args) {
+        return new Promise((resolve, reject) => {
+            this.connection.query(sql, args, (err, rows) => {
+                if (err)
+                    return reject(err);
+                resolve(rows);
+            });
+        });
+    }
+    close() {
+        return new Promise((resolve, reject) => {
+            this.connection.end(err => {
+                if (err)
+                    return reject(err);
+                resolve();
+            });
+        });
+    }
+}
+
+// Connection properties to sql database
+const db = new Database({
+    host: "localhost",
+    port: 3306,
+    user: "root",
+    password: "yourRootPassword",
+    database: "employee_DB"
+});
 
 // // Main Menu - Prompt user to choose an option
 function runApp() {
@@ -59,8 +94,6 @@ function runApp() {
         }
     });
 }
-
-runApp();
 
 // Builds complete employee table
 async function showEmployeeSummary() {
@@ -475,3 +508,5 @@ function editDepartmentOptions() {
         }
     })
 };
+
+runApp();
