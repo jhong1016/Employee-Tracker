@@ -8,8 +8,6 @@
 
 ### [Description](#Description)
 
-### [Screenshot](#Screenshot)
-
 ### [Installation](#Installation)
 
 ### [Usage](#Usage)
@@ -30,12 +28,6 @@ The following objectives were sought:
 2. The table should have the column names: id, first_name, last_name, title, salary, department, and manager (if applicable)
 3. Allow the user to add, view or delete employees, roles, and departments
 4. Allow the user to update employees, employee managers, roles, and departments
-
----
-
-### <a name="Screenshot"></a>Screenshot:
-
-![]
 
 ---
 
